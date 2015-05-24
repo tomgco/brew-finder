@@ -26,3 +26,15 @@
 *.exe
 *.out
 *.app
+
+# Vim
+*.sw*
+
+# CMake
+CMakeCache.txt
+CMakeFiles/*
+CMakeFiles
+cmake_install.cmake
+
+# Build
+bin/

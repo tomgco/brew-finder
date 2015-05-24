@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 2.8)
+project( beerdetect )
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+SET(EXECUTABLE_OUTPUT_PATH bin/)
+add_executable( beerdetect beerdetect.cpp )
+target_link_libraries( beerdetect ${OpenCV_LIBS} )
