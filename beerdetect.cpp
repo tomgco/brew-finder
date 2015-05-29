@@ -5,20 +5,25 @@ using namespace cv;
 
 Mat src;
 Mat image, src_gray;
+Mat ero_dst;
+
+int erosion_elem = 1;
+int erosion_size = 1;
+int dilation_elem = 0;
+int dilation_size = 0;
+int blag = 0;
+int const max_kernel_size = 21;
+Mat detected_edges, dst;
 
 void cannyThreshold(int, void *) {
   RNG rng(12345);
   int kernel_size = 3;
-  Mat detected_edges, dst;
   vector< vector<Point> > contours;
   vector< Vec4i > hierarchy;
-  int lowThreshold = 45;
-  int const max_lowThreshold = 100;
-  int ratio = 3;
+  int lowThreshold = 50;
+  int ratio = 5;
 
-  blur(src_gray, detected_edges, Size(4,4));
   Canny(detected_edges, detected_edges, lowThreshold, lowThreshold * ratio, kernel_size);
-  /* dilate(detected_edges, detected_edges, Mat(), Point(-1,-1)); */
   dst = Scalar::all(0);
   src.copyTo(dst, detected_edges);
 
@@ -29,9 +34,17 @@ void cannyThreshold(int, void *) {
   vector<Point2f>center( contours.size() );
   vector<float>radius( contours.size() );
 
+
+  int largestBox = 0;
+  int largestIndex = 0;
   // create bounding boxes of contours
   for(int i = 0; i < contours.size(); i++) {
     approxPolyDP(Mat(contours[i]), contours_poly[i], 3, true);
+    int a = contourArea(contours_poly[i], false);
+    if (a > largestBox) {
+      largestBox = a;
+      largestIndex = i;
+    }
     boundRect[i] = boundingRect(Mat(contours_poly[i]));
   }
 
@@ -40,19 +53,17 @@ void cannyThreshold(int, void *) {
   for(int i = 0; i< contours.size(); i++) {
     Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
     drawContours( drawing, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point() );
-    rectangle( drawing, boundRect[i].tl(), boundRect[i].br(), color, 2, 8, 0 );
+    rectangle( drawing, boundRect[largestIndex].tl(), boundRect[largestIndex].br(), color, 2, 8, 0 );
   }
-
-  /// Draw contours
-  /* Mat drawing = Mat::zeros(detected_edges.size(), CV_8UC3); */
-
-  /* for(int i = 0; i< contours.size(); i++) { */
-  /*   Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) ); */
-  /*   drawContours(drawing, contours, i, color, 2, 8, hierarchy, 0, Point()); */
-  /* } */
 
   imshow("Display Image", dst);
   imshow("Display Image2", drawing);
+}
+
+void normaliseImage() {
+  GaussianBlur(src_gray, detected_edges, Size(1, 1), 2, 1, BORDER_DEFAULT);
+  /* blur(src_gray, detected_edges, Size(4,4)); */
+  /* dilate(detected_edges, detected_edges, Mat(), Point(-1,-1)); */
 }
 
 int main(int argc, char** argv ) {
@@ -71,10 +82,12 @@ int main(int argc, char** argv ) {
 
   resize(image, src, cvSize(0, 0), 0.6, 0.6);
 
-  GaussianBlur(src, src, Size(3, 3), 0, 0, BORDER_DEFAULT);
   cvtColor(src, src_gray, CV_RGB2GRAY);
   namedWindow("Display Image", WINDOW_AUTOSIZE);
   /* createTrackbar( " Threshold:", "Display Image", &lowThreshold, max_lowThreshold, cannyThreshold ); */
+
+  /// Default start
+  normaliseImage();
   cannyThreshold(40, 0);
 
   waitKey(0);
