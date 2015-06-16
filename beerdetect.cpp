@@ -15,6 +15,10 @@ int blag = 0;
 int const max_kernel_size = 21;
 Mat detected_edges, dst;
 
+void autoCanny(int sigma) {
+
+}
+
 void cannyThreshold(int, void *) {
   RNG rng(12345);
   int kernel_size = 3;
@@ -33,7 +37,6 @@ void cannyThreshold(int, void *) {
   vector<Rect> boundRect( contours.size() );
   vector<Point2f>center( contours.size() );
   vector<float>radius( contours.size() );
-
 
   int largestBox = 0;
   int largestIndex = 0;
